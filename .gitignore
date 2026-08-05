@@ -3,3 +3,5 @@ target/
 *.iml
 .vscode/
 nbproject/private/
+*.log
+.DS_Store
