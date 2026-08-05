@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario | Tienda local</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+</head>
+<body>
+<header class="encabezado">
+    <div class="contenedor encabezado-contenido">
+        <div>
+            <p class="etiqueta-superior">Sistema web académico</p>
+            <h1>Control de inventario y caducidades</h1>
+            <p>
+                Registra existencias en piso y bodega e identifica los productos
+                caducados o próximos a caducar.
+            </p>
+        </div>
+        <div class="leyenda">
+            <span><i class="punto rojo"></i> Caducado</span>
+            <span><i class="punto amarillo"></i> Próximo a caducar</span>
+            <span><i class="punto verde"></i> Vigente</span>
+        </div>
+    </div>
+</header>
+
+<main class="contenedor">
+    <section class="resumen" aria-label="Resumen del inventario">
+        <article class="tarjeta-resumen">
+            <span>Productos</span>
+            <strong th:text="${totalProductos}">0</strong>
+        </article>
+        <article class="tarjeta-resumen">
+            <span>Unidades</span>
+            <strong th:text="${totalUnidades}">0</strong>
+        </article>
+        <article class="tarjeta-resumen borde-rojo">
+            <span>Caducados</span>
+            <strong th:text="${caducados}">0</strong>
+        </article>
+        <article class="tarjeta-resumen borde-amarillo">
+            <span>Próximos</span>
+            <strong th:text="${proximos}">0</strong>
+        </article>
+        <article class="tarjeta-resumen borde-verde">
+            <span>Vigentes</span>
+            <strong th:text="${vigentes}">0</strong>
+        </article>
+    </section>
+
+    <p class="mensaje-exito" th:if="${mensaje}" th:text="${mensaje}"></p>
+
+    <section class="panel-grid">
+        <article class="panel">
+            <div class="titulo-panel">
+                <div>
+                    <p class="etiqueta-superior">Captura</p>
+                    <h2>Registrar producto</h2>
+                </div>
+            </div>
+
+            <form th:action="@{/productos}" th:object="${producto}" method="post">
+                <label for="nombre">Nombre del producto</label>
+                <input id="nombre" type="text" th:field="*{nombre}"
+                       placeholder="Ej. Leche deslactosada">
+                <small class="error" th:errors="*{nombre}"></small>
+
+                <div class="campos-dobles">
+                    <div>
+                        <label for="cantidadPiso">Cantidad en piso</label>
+                        <input id="cantidadPiso" type="number" min="0"
+                               th:field="*{cantidadPiso}">
+                        <small class="error" th:errors="*{cantidadPiso}"></small>
+                    </div>
+
+                    <div>
+                        <label for="cantidadBodega">Cantidad en bodega</label>
+                        <input id="cantidadBodega" type="number" min="0"
+                               th:field="*{cantidadBodega}">
+                        <small class="error" th:errors="*{cantidadBodega}"></small>
+                    </div>
+                </div>
+
+                <label for="fechaCaducidad">Fecha de caducidad</label>
+                <input id="fechaCaducidad" type="date"
+                       th:field="*{fechaCaducidad}">
+                <small class="error" th:errors="*{fechaCaducidad}"></small>
+
+                <button type="submit">Guardar producto</button>
+            </form>
+
+            <div class="nota">
+                <strong>Regla del semáforo:</strong>
+                rojo para productos caducados, amarillo para siete días o menos
+                y verde para más de siete días.
+            </div>
+        </article>
+
+        <article class="panel panel-tabla">
+            <div class="titulo-panel">
+                <div>
+                    <p class="etiqueta-superior">Consulta</p>
+                    <h2>Inventario actual</h2>
+                </div>
+                <span class="fecha" th:text="${fechaActual}">
+                    01/01/2026
+                </span>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Piso</th>
+                        <th>Bodega</th>
+                        <th>Total</th>
+                        <th>Caducidad</th>
+                        <th>Estado</th>
+                        <th>Administración</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${productos}">
+                        <td data-label="Producto" th:text="${item.producto.nombre}">Producto</td>
+                        <td data-label="Piso" th:text="${item.producto.cantidadPiso}">0</td>
+                        <td data-label="Bodega" th:text="${item.producto.cantidadBodega}">0</td>
+                        <td data-label="Total" th:text="${item.producto.cantidadTotal}">0</td>
+                        <td data-label="Caducidad"
+                            th:text="${item.fechaCaducidadFormateada}">
+                            01/01/2026
+                        </td>
+                        <td data-label="Estado">
+                            <span class="estado"
+                                  th:classappend="${item.estado.name().toLowerCase()}"
+                                  th:text="${item.estado}">
+                                VERDE
+                            </span>
+                            <small class="dias"
+                                   th:if="${item.diasRestantes >= 0}"
+                                   th:text="${item.diasRestantes == 0
+                                   ? 'Caduca hoy'
+                                   : 'Faltan ' + item.diasRestantes + ' días'}">
+                            </small>
+                            <small class="dias"
+                                   th:if="${item.diasRestantes < 0}"
+                                   th:text="${'Caducó hace ' + (-item.diasRestantes) + ' días'}">
+                            </small>
+                        </td>
+                        <td data-label="Administración">
+                            <form th:action="@{/productos/{id}/eliminar(id=${item.producto.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('¿Eliminar este producto?');">
+                                <button class="boton-eliminar" type="submit">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(productos)}">
+                        <td colspan="7" class="sin-datos">
+                            No hay productos registrados.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+</main>
+
+<footer>
+    Proyecto académico · Universidad Tecmilenio · 2026
+</footer>
+</body>
+</html>
