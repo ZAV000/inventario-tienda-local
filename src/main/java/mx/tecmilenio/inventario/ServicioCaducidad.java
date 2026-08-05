@@ -1,16 +1,16 @@
 package mx.tecmilenio.inventario;
 
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
+@Service
 public class ServicioCaducidad {
 
     public EstadoCaducidad calcularEstado(LocalDate fechaActual, LocalDate fechaCaducidad) {
-        Objects.requireNonNull(fechaActual, "La fecha actual es obligatoria");
-        Objects.requireNonNull(fechaCaducidad, "La fecha de caducidad es obligatoria");
-
-        long diasRestantes = ChronoUnit.DAYS.between(fechaActual, fechaCaducidad);
+        long diasRestantes = calcularDiasRestantes(fechaActual, fechaCaducidad);
 
         if (diasRestantes < 0) {
             return EstadoCaducidad.ROJO;
@@ -21,5 +21,12 @@ public class ServicioCaducidad {
         }
 
         return EstadoCaducidad.VERDE;
+    }
+
+    public long calcularDiasRestantes(LocalDate fechaActual, LocalDate fechaCaducidad) {
+        Objects.requireNonNull(fechaActual, "La fecha actual es obligatoria.");
+        Objects.requireNonNull(fechaCaducidad, "La fecha de caducidad es obligatoria.");
+
+        return ChronoUnit.DAYS.between(fechaActual, fechaCaducidad);
     }
 }

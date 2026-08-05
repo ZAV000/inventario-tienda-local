@@ -1,7 +1,11 @@
 language: java
+
+os: linux
 dist: jammy
+arch: ppc64le
+
 jdk:
-  - openjdk17
+  - semeru17
 
 script:
   - mvn clean test
