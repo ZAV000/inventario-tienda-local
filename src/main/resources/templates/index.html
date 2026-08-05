@@ -145,7 +145,7 @@
                             </small>
                             <small class="dias"
                                    th:if="${item.diasRestantes < 0}"
-                                   th:text="${'Caducó hace ' + (-item.diasRestantes) + ' días'}">
+                                   th:text="|Caducó hace ${-item.diasRestantes} días|">
                             </small>
                         </td>
                         <td data-label="Administración">
